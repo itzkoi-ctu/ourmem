@@ -25,7 +25,7 @@ const CountdownWidget: React.FC<CountdownWidgetProps> = ({ data }) => {
         </h2>
         <div className="flex items-baseline gap-2 mt-2">
           <span className="text-5xl font-extrabold bg-gradient-to-r from-couple-500 to-pink-500 bg-clip-text text-transparent animate-pulse">
-            {daysTogether.toLocaleString()}
+            {(daysTogether+ 1).toLocaleString() }
           </span>
           <span className="text-2xl font-semibold text-stone-500">days</span>
         </div>
