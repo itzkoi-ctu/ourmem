@@ -22,7 +22,6 @@ const Navbar: React.FC<NavbarProps> = ({ isGuest }) => {
     try {
       await apiClient.post('/auth/logout');
       localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
       dispatch(logoutUser());
       toast.success('Logged out successfully');
       navigate('/login');
