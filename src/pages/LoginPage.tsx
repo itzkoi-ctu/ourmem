@@ -39,6 +39,13 @@ const LoginPage = () => {
       const response = await apiClient.post('/auth/login', { email, password });
       const { data } = response.data;
       
+      if (data.accessToken) {
+        localStorage.setItem('access_token', data.accessToken);
+      }
+      if (data.refreshToken) {
+        localStorage.setItem('refresh_token', data.refreshToken);
+      }
+
       dispatch(setCredentials({
         id: data.userId,
         email: data.email,

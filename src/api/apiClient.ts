@@ -9,6 +9,18 @@ const apiClient = axios.create({
   },
 });
 
+// Request interceptor to attach access token to headers
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Response interceptor to handle errors and silent token refresh
 apiClient.interceptors.response.use(
   (response) => response,
@@ -23,14 +35,32 @@ apiClient.interceptors.response.use(
       
       originalRequest._retry = true;
       try {
-        await axios.post(
+        const refreshToken = localStorage.getItem('refresh_token');
+        const refreshResponse = await axios.post(
           `${apiClient.defaults.baseURL}/auth/refresh`,
           {},
-          { withCredentials: true }
+          { 
+            headers: {
+              'X-Refresh-Token': refreshToken || ''
+            },
+            withCredentials: true 
+          }
         );
+        
+        const { data } = refreshResponse.data;
+        if (data.accessToken) {
+          localStorage.setItem('access_token', data.accessToken);
+        }
+        if (data.refreshToken) {
+          localStorage.setItem('refresh_token', data.refreshToken);
+        }
+        
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // Refresh token failed, redirect to login page (or trigger guest mode)
+        // Refresh token failed, clear tokens and redirect/reject
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         return Promise.reject(error);
       }
     }
