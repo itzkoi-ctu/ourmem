@@ -32,15 +32,15 @@ function App() {
 
   useEffect(() => {
     if (theme === 'dark') {
-      document.body.classList.add('dark');
+      document.documentElement.classList.add('dark');
     } else {
-      document.body.classList.remove('dark');
+      document.documentElement.classList.remove('dark');
     }
   }, [theme]);
 
   return (
     <Router>
-      <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
+      <Toaster position="top-center" toastOptions={{ duration: 3000, style: { background: 'var(--surface)', color: 'var(--foreground)', border: '1px solid var(--border)' } }} />
       <Routes>
         {/* Public / Guest Routes */}
         <Route path="/login" element={<LoginPage />} />

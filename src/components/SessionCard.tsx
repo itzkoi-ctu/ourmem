@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Eye, Lock, Image } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -14,6 +15,8 @@ interface SessionCardProps {
 const SessionCard: React.FC<SessionCardProps> = ({ session, isGuest }) => {
   const [isPublic, setIsPublic] = useState(session.isPublic);
   const [toggling, setToggling] = useState(false);
+  const queryClient = useQueryClient();
+  useEffect(() => setIsPublic(session.isPublic), [session.isPublic]);
 
   const handleTogglePublic = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -23,6 +26,8 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, isGuest }) => {
     try {
       const res = await apiClient.patch(`/sessions/${session.id}/toggle-public`);
       setIsPublic(res.data.data.isPublic);
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['public', 'sessions'] });
       toast.success(res.data.data.isPublic ? 'Session is now Public 🌍' : 'Session is now Private 🔒');
     } catch (err) {
       toast.error('Failed to change session status');
@@ -44,22 +49,25 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, isGuest }) => {
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
       className="bg-white dark:bg-stone-900 rounded-3xl overflow-hidden border border-stone-100 dark:border-stone-800 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full"
     >
-      <Link to={linkPath} className="relative block group overflow-hidden aspect-[4/3] bg-stone-100 dark:bg-stone-850">
+      <div className="relative block group overflow-hidden aspect-[4/3] bg-stone-100 dark:bg-stone-850">
+        <Link to={linkPath} aria-label={`View ${session.title}`} className="absolute inset-0">
         <img
           src={session.coverPhotoUrl || 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=500'}
           alt={session.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
           loading="lazy"
         />
+        </Link>
         
         {/* Soft shadow gradients */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
 
         {/* Visibility badge for Owner */}
         {!isGuest && (
           <button
             onClick={handleTogglePublic}
             disabled={toggling}
+            aria-label={isPublic ? 'Make session private' : 'Make session public'}
             className={`absolute top-4 right-4 p-2 rounded-full shadow-sm backdrop-blur-md transition-all z-10 ${
               isPublic
                 ? 'bg-emerald-500/80 text-white hover:bg-emerald-600'
@@ -72,7 +80,7 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, isGuest }) => {
         )}
 
         {/* Media indicators (video icon, count) */}
-        <div className="absolute bottom-4 left-4 flex gap-1.5 z-10">
+        <div className="pointer-events-none absolute bottom-4 left-4 flex gap-1.5 z-10">
           <span className="flex items-center gap-1 bg-black/40 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-full border border-white/10">
             <Image className="w-3.5 h-3.5" />
             <span>{session.photoCount}</span>
@@ -83,7 +91,7 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, isGuest }) => {
             </span>
           )}
         </div>
-      </Link>
+      </div>
 
       <div className="p-5 flex flex-col flex-1 gap-2">
         {session.moodTag && (
@@ -95,7 +103,7 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, isGuest }) => {
           <Link to={linkPath}>{session.title}</Link>
         </h4>
         {session.description && (
-          <p className="text-stone-400 dark:text-stone-400 text-xs line-clamp-2 leading-relaxed">
+          <p className="text-stone-500 dark:text-stone-400 text-xs line-clamp-2 leading-relaxed">
             {session.description}
           </p>
         )}

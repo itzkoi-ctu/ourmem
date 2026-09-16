@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Heart, Search, LogOut, Sun, Moon, LogIn, Camera } from 'lucide-react';
+import { Heart, Search, LogOut, LogIn, Camera } from 'lucide-react';
 import { RootState } from '../store';
-import { toggleTheme } from '../store/slices/themeSlice';
 import { logoutUser } from '../store/slices/authSlice';
 import apiClient from '../api/apiClient';
 import toast from 'react-hot-toast';
+import ThemeToggle from './ThemeToggle';
 
 interface NavbarProps {
   isGuest: boolean;
@@ -15,7 +15,6 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ isGuest }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const theme = useSelector((state: RootState) => state.theme.mode);
   const user = useSelector((state: RootState) => state.auth.user);
 
   const handleLogout = async () => {
@@ -31,9 +30,9 @@ const Navbar: React.FC<NavbarProps> = ({ isGuest }) => {
   };
 
   return (
-    <nav className="sticky top-0 z-40 w-full glassmorphism border-b border-stone-100 dark:border-stone-900 shadow-sm py-4 px-6 flex items-center justify-between">
+    <nav aria-label="Main navigation" className="sticky top-0 z-40 w-full glassmorphism shadow-sm py-3 px-4 sm:px-6 flex flex-wrap gap-2 items-center justify-between">
       {/* Brand logo */}
-      <Link to="/" className="flex items-center gap-2 text-xl font-bold tracking-tight text-couple-500 hover:opacity-90 transition-opacity">
+      <Link to={isGuest ? '/public' : '/'} className="flex items-center gap-2 text-lg sm:text-xl font-bold tracking-tight text-couple-600 dark:text-couple-400 hover:opacity-90 transition-opacity">
         <Heart className="w-6 h-6 fill-current animate-pulse text-couple-500" />
         <span className="hidden sm:inline bg-gradient-to-r from-couple-500 to-pink-500 bg-clip-text text-transparent">
           Our Photobooth Memories
@@ -70,11 +69,13 @@ const Navbar: React.FC<NavbarProps> = ({ isGuest }) => {
                 }`
               }
               title="Search memories"
+              aria-label="Search memories"
             >
               <Search className="w-4 h-4" />
             </NavLink>
             <NavLink
               to="/sessions/new"
+              aria-label="Add memory"
               className="bg-couple-500 text-white p-2 sm:px-4 sm:py-2 rounded-full text-sm font-medium hover:bg-couple-600 transition-colors shadow-sm flex items-center gap-1.5"
             >
               <Camera className="w-4 h-4" />
@@ -85,13 +86,7 @@ const Navbar: React.FC<NavbarProps> = ({ isGuest }) => {
 
         {/* System toggles & Profile */}
         <div className="flex items-center gap-2 border-l border-stone-200 dark:border-stone-800 pl-2 sm:pl-4">
-          <button
-            onClick={() => dispatch(toggleTheme())}
-            className="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-900 transition-colors text-stone-600 dark:text-stone-400"
-            title="Toggle Theme"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-          </button>
+          <ThemeToggle />
 
           {isGuest ? (
             <Link

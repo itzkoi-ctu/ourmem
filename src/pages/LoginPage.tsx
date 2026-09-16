@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { RootState } from '../store';
 import { setCredentials } from '../store/slices/authSlice';
 import apiClient from '../api/apiClient';
+import ThemeToggle from '../components/ThemeToggle';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -63,6 +64,7 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-[#FFF0F5] dark:bg-stone-950 flex flex-col justify-center items-center px-4 relative overflow-hidden">
+      <div className="absolute right-4 top-4 z-20"><ThemeToggle /></div>
       {/* Decorative floating shapes */}
       <div className="absolute top-1/4 left-1/10 w-72 h-72 rounded-full bg-pink-100/60 dark:bg-pink-900/10 blur-3xl" />
       <div className="absolute bottom-1/4 right-1/10 w-80 h-80 rounded-full bg-couple-100/60 dark:bg-couple-950/10 blur-3xl" />
@@ -91,11 +93,13 @@ const LoginPage = () => {
               Email Address
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-400">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-500 dark:text-stone-400">
                 <Mail className="w-4 h-4" />
               </span>
               <input
                 type="email"
+                aria-label="Email address"
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="anh@ourmemory.app"
@@ -110,11 +114,13 @@ const LoginPage = () => {
               Password
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-400">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-500 dark:text-stone-400">
                 <Lock className="w-4 h-4" />
               </span>
               <input
                 type={showPassword ? 'text' : 'password'}
+                aria-label="Password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
@@ -123,8 +129,9 @@ const LoginPage = () => {
               />
               <button
                 type="button"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-600"
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-500 hover:text-stone-600 dark:text-stone-400"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -144,7 +151,7 @@ const LoginPage = () => {
           </button>
 
           <div className="text-center mt-4">
-            <span className="text-stone-400 dark:text-stone-500 text-xs">
+            <span className="text-stone-500 dark:text-stone-500 text-xs">
               Not an owner? Go to the{' '}
               <a href="/public" className="text-couple-500 hover:underline font-semibold">
                 Guest Gallery

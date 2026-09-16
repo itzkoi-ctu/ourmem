@@ -4,6 +4,7 @@ import { Gift, CalendarDays, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import CountdownWidget from '../components/CountdownWidget';
 import SessionCard from '../components/SessionCard';
+import QueryError from '../components/QueryError';
 import apiClient from '../api/apiClient';
 import { Session, Countdown } from '../types';
 
@@ -27,7 +28,7 @@ const HomePage = () => {
   });
 
   // Query 3: All photo sessions (first page)
-  const { data: sessionsData, isLoading: sessionsLoading } = useQuery({
+  const { data: sessionsData, isLoading: sessionsLoading, isError: sessionsError, refetch: refetchSessions } = useQuery({
     queryKey: ['sessions', 'all'],
     queryFn: async () => {
       const res = await apiClient.get('/sessions?page=0&size=50');
@@ -82,7 +83,7 @@ const HomePage = () => {
                       <h4 className="font-bold text-stone-800 dark:text-stone-100 text-sm sm:text-base leading-tight">
                         {session.title}
                       </h4>
-                      <span className="text-xs text-stone-400 font-semibold">{session.sessionDate}</span>
+                      <span className="text-xs text-stone-500 font-semibold dark:text-stone-400">{session.sessionDate}</span>
                     </div>
                   </div>
                   <span className="text-xs font-bold text-couple-500 px-2.5 py-1 rounded-full bg-couple-100 dark:bg-couple-950/50">
@@ -93,7 +94,7 @@ const HomePage = () => {
             </div>
           ) : (
             <div className="text-center p-6 bg-white dark:bg-stone-900/40 rounded-2xl border border-stone-100 dark:border-stone-800 shadow-sm flex flex-col items-center justify-center">
-              <span className="text-sm text-stone-400 font-semibold">No memories recorded on this day.</span>
+              <span className="text-sm text-stone-500 font-semibold dark:text-stone-400">No memories recorded on this day.</span>
             </div>
           )}
         </div>
@@ -125,13 +126,13 @@ const HomePage = () => {
             <h3>Memory Timeline</h3>
           </div>
           {sessionsData && (
-            <span className="text-xs text-stone-400 font-bold uppercase tracking-wider">
+            <span className="text-xs text-stone-500 font-bold uppercase tracking-wider dark:text-stone-400">
               {sessionsData.totalElements} Sessions
             </span>
           )}
         </div>
 
-        {sessionsLoading ? (
+        {sessionsError ? <QueryError onRetry={() => refetchSessions()} /> : sessionsLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-80 rounded-2xl bg-stone-100 dark:bg-stone-900 animate-pulse" />
@@ -158,8 +159,8 @@ const HomePage = () => {
           </motion.div>
         ) : (
           <div className="text-center py-16 px-4 bg-white dark:bg-stone-900/40 rounded-3xl border border-stone-100 dark:border-stone-800 shadow-sm flex flex-col items-center justify-center">
-            <span className="text-lg text-stone-400 font-bold">Our memories chest is empty.</span>
-            <span className="text-stone-400 dark:text-stone-500 text-sm mt-1">Click "Add Memory" to record your first photobooth strip.</span>
+            <span className="text-lg text-stone-500 font-bold dark:text-stone-400">Our memories chest is empty.</span>
+            <span className="text-stone-500 dark:text-stone-500 text-sm mt-1">Click "Add Memory" to record your first photobooth strip.</span>
           </div>
         )}
       </div>

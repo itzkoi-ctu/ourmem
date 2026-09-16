@@ -4,6 +4,7 @@ import { Sparkles, CalendarDays } from 'lucide-react';
 import { motion } from 'framer-motion';
 import CountdownWidget from '../components/CountdownWidget';
 import SessionCard from '../components/SessionCard';
+import QueryError from '../components/QueryError';
 import apiClient from '../api/apiClient';
 import { Session, Countdown } from '../types';
 
@@ -18,7 +19,7 @@ const PublicGalleryPage = () => {
   });
 
   // Query 2: Public sessions list
-  const { data: sessionsData, isLoading: sessionsLoading } = useQuery({
+  const { data: sessionsData, isLoading: sessionsLoading, isError: sessionsError, refetch: refetchSessions } = useQuery({
     queryKey: ['public', 'sessions'],
     queryFn: async () => {
       const res = await apiClient.get('/public/sessions?page=0&size=50');
@@ -40,7 +41,7 @@ const PublicGalleryPage = () => {
           </div>
         </div>
 
-        {sessionsLoading ? (
+        {sessionsError ? <QueryError onRetry={() => refetchSessions()} /> : sessionsLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 animate-pulse">
             {[1, 2].map((i) => (
               <div key={i} className="h-80 rounded-2xl bg-stone-100 dark:bg-stone-900" />
@@ -65,7 +66,7 @@ const PublicGalleryPage = () => {
           </motion.div>
         ) : (
           <div className="text-center py-16 bg-white dark:bg-stone-900/40 rounded-3xl border border-stone-100 dark:border-stone-800 flex flex-col items-center justify-center">
-            <span className="text-stone-400 font-bold">No public memories currently available.</span>
+            <span className="text-stone-500 font-bold dark:text-stone-400">No public memories currently available.</span>
           </div>
         )}
       </div>

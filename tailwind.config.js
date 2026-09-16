@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -7,6 +8,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        stone: { 850: '#242120' },
         couple: {
           50: '#fff5f6',
           100: '#ffebeb',
@@ -18,6 +20,7 @@ export default {
           700: '#c7102e',
           800: '#a5102a',
           900: '#891127',
+          950: '#4c0717',
         },
         pastel: {
           pink: '#FFE4E1',     // Misty Rose

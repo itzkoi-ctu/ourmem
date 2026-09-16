@@ -12,7 +12,7 @@ const ProtectedRoute = () => {
       <div className="flex h-screen items-center justify-center bg-[#FAF8F5] dark:bg-stone-900">
         <div className="relative flex flex-col items-center">
           <div className="h-12 w-12 animate-heartbeat text-couple-500 text-4xl">❤️</div>
-          <span className="mt-4 text-stone-500 font-medium animate-pulse">Loading memories...</span>
+          <span className="mt-4 text-stone-500 font-medium animate-pulse dark:text-stone-400">Loading memories...</span>
         </div>
       </div>
     );

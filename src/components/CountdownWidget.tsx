@@ -17,7 +17,7 @@ const CountdownWidget: React.FC<CountdownWidgetProps> = ({ data }) => {
       </div>
 
       <div className="flex flex-col items-center md:items-start text-center md:text-left">
-        <span className="text-stone-400 text-sm font-semibold tracking-wider uppercase mb-1">
+        <span className="text-stone-500 text-sm font-semibold tracking-wider uppercase mb-1 dark:text-stone-400">
           {coupleName}
         </span>
         <h2 className="text-3xl font-extrabold tracking-tight dark:text-white flex items-center gap-2">
@@ -27,9 +27,9 @@ const CountdownWidget: React.FC<CountdownWidgetProps> = ({ data }) => {
           <span className="text-5xl font-extrabold bg-gradient-to-r from-couple-500 to-pink-500 bg-clip-text text-transparent animate-pulse">
             {(daysTogether+ 1).toLocaleString() }
           </span>
-          <span className="text-2xl font-semibold text-stone-500">days</span>
+          <span className="text-2xl font-semibold text-stone-500 dark:text-stone-400">days</span>
         </div>
-        <div className="flex items-center gap-1.5 text-stone-400 text-xs mt-3 bg-stone-50 dark:bg-stone-900/50 py-1.5 px-3 rounded-full">
+        <div className="flex items-center gap-1.5 text-stone-500 text-xs mt-3 bg-stone-50 dark:bg-stone-900/50 py-1.5 px-3 rounded-full dark:text-stone-400">
           <Calendar className="w-3.5 h-3.5" />
           <span>Anniversary: {new Date(anniversaryDate).toLocaleDateString('en-US', { dateStyle: 'long' })}</span>
         </div>
@@ -45,7 +45,7 @@ const CountdownWidget: React.FC<CountdownWidgetProps> = ({ data }) => {
             {nextMilestone.title}
           </span>
           <div className="flex items-center justify-between border-t border-couple-100 dark:border-couple-900/50 pt-2 mt-1">
-            <span className="text-xs text-stone-400 font-semibold">{nextMilestone.targetDate}</span>
+            <span className="text-xs text-stone-500 font-semibold dark:text-stone-400">{nextMilestone.targetDate}</span>
             <span className="text-sm font-bold text-couple-500">
               {nextMilestone.daysUntil > 0 ? (
                 `${nextMilestone.daysUntil} days left`
@@ -59,7 +59,7 @@ const CountdownWidget: React.FC<CountdownWidgetProps> = ({ data }) => {
         </div>
       ) : (
         <div className="text-center py-6 px-4 bg-stone-50 dark:bg-stone-900/50 border border-dashed border-stone-200 dark:border-stone-800 rounded-2xl w-full md:w-80 relative z-10 flex flex-col items-center justify-center">
-          <span className="text-xs text-stone-400 font-medium">No upcoming milestone set.</span>
+          <span className="text-xs text-stone-500 font-medium dark:text-stone-400">No upcoming milestone set.</span>
         </div>
       )}
     </div>

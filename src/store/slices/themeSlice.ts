@@ -5,7 +5,13 @@ interface ThemeState {
 }
 
 const initialState: ThemeState = {
-  mode: (localStorage.getItem('theme_mode') as 'light' | 'dark') || 'light',
+  mode: (() => {
+    try {
+      const saved = localStorage.getItem('theme_mode');
+      if (saved === 'light' || saved === 'dark') return saved;
+    } catch { /* Storage may be unavailable in private browsing. */ }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  })(),
 };
 
 const themeSlice = createSlice({
@@ -14,7 +20,7 @@ const themeSlice = createSlice({
   reducers: {
     toggleTheme: (state) => {
       state.mode = state.mode === 'light' ? 'dark' : 'light';
-      localStorage.setItem('theme_mode', state.mode);
+      try { localStorage.setItem('theme_mode', state.mode); } catch { /* Keep theme usable without storage. */ }
     },
   },
 });

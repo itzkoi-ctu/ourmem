@@ -76,7 +76,7 @@ const CreateSessionPage = () => {
 
   return (
     <div className="max-w-xl mx-auto flex flex-col gap-6">
-      <Link to={isEdit ? `/sessions/${id}` : '/'} className="flex items-center gap-1 text-sm font-semibold text-stone-500 hover:text-stone-800 dark:hover:text-stone-100 transition-colors">
+      <Link to={isEdit ? `/sessions/${id}` : '/'} className="flex items-center gap-1 text-sm font-semibold text-stone-500 hover:text-stone-800 dark:hover:text-stone-100 transition-colors dark:text-stone-400">
         <ChevronLeft className="w-4 h-4" />
         <span>Cancel</span>
       </Link>
@@ -86,14 +86,14 @@ const CreateSessionPage = () => {
           <Camera className="w-8 h-8 text-couple-500 fill-couple-100" />
           <span>{isEdit ? 'Edit Memory Session' : 'Record New Shoot'}</span>
         </h2>
-        <p className="text-stone-400 text-sm mt-1">
+        <p className="text-stone-500 text-sm mt-1 dark:text-stone-400">
           Create a box to store your photobooth strips and behind-the-scenes timelapse.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="glassmorphism rounded-3xl p-6 md:p-8 border border-couple-100/50 shadow-md flex flex-col gap-5">
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-stone-500">
+          <label className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
             Session Title *
           </label>
           <input
@@ -108,11 +108,11 @@ const CreateSessionPage = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <label className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
               Date *
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-400">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-500 dark:text-stone-400">
                 <Calendar className="w-4 h-4" />
               </span>
               <input
@@ -126,11 +126,11 @@ const CreateSessionPage = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <label className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
               Location
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-400">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-500 dark:text-stone-400">
                 <MapPin className="w-4 h-4" />
               </span>
               <input
@@ -146,11 +146,11 @@ const CreateSessionPage = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <label className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
               Mood tag
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-400">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-500 dark:text-stone-400">
                 <Smile className="w-4 h-4" />
               </span>
               <input
@@ -164,11 +164,11 @@ const CreateSessionPage = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <label className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
               Spotify playlist Link
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-400">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-stone-500 dark:text-stone-400">
                 <Link2 className="w-4 h-4" />
               </span>
               <input
@@ -183,7 +183,7 @@ const CreateSessionPage = () => {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-stone-500">
+          <label className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
             Description
           </label>
           <textarea
