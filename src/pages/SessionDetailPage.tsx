@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import PhotoDialog from '../components/PhotoDialog';
 import QueryError from '../components/QueryError';
 import ImageEditor from '../components/ImageEditor';
+import VideoProcessingStatus from '../components/VideoProcessingStatus';
 import VideoPlayer from '../components/VideoPlayer';
 import apiClient from '../api/apiClient';
 import { Session, Photo, LoveNote } from '../types';
@@ -290,6 +291,7 @@ const SessionDetailPage = () => {
         </div>
       </div>
 
+      <VideoProcessingStatus sessionId={id} />
       {/* 3. Timelapse section if attached */}
       {session.videoUrl && (
         <div className="flex flex-col gap-3">

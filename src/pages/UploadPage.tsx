@@ -5,6 +5,7 @@ import { Upload, Camera, Film, Trash2, ArrowRight, ChevronLeft, Edit } from 'luc
 import toast from 'react-hot-toast';
 import ImageEditor from '../components/ImageEditor';
 import { Session } from '../types';
+import VideoProcessingStatus, { useVideoStatus } from '../components/VideoProcessingStatus';
 import VideoPlayer from '../components/VideoPlayer';
 import apiClient from '../api/apiClient';
 
@@ -22,6 +23,8 @@ const UploadPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const videoStatus = useVideoStatus(id);
+  const processingVideo = videoStatus.data?.status === 'PROCESSING';
 
   const [images, setImages] = useState<File[]>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -69,8 +72,8 @@ const UploadPage = () => {
       if (file.size > 100 * 1024 * 1024) {
         return toast.error('Video must be less than 100MB');
       }
-      if (file.type !== 'video/mp4') {
-        return toast.error('Only MP4 format video timelapse is allowed');
+      if (!/\.(mp4|mov|webm|mkv|avi|m4v)$/i.test(file.name)) {
+        return toast.error('Choose MP4, MOV, WebM, MKV, AVI or M4V');
       }
       setVideo(file);
     }
@@ -87,6 +90,7 @@ const UploadPage = () => {
 
     if (sessionLoading || sessionError) return toast.error('Load the session before uploading.');
     if (video && session?.videoUrl && !window.confirm('Replace the current video? It will be removed only after the new video is saved successfully.')) return;
+    if (video && (processingVideo || videoStatus.isPending || videoStatus.isError)) return toast.error('Please wait until the current video has finished processing.');
     setUploading(true);
     setProgress(0);
     const totalBytes = images.reduce((sum, file) => sum + file.size, 0) + (video?.size || 0);
@@ -112,18 +116,20 @@ const UploadPage = () => {
       if (video) {
         const formData = new FormData();
         formData.append('file', video);
-        await apiClient.post(`/sessions/${id}/video`, formData, {
+        const response = await apiClient.post(`/sessions/${id}/video`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
           onUploadProgress: event => reportProgress(event.loaded),
         });
+        queryClient.setQueryData(['video-status', id], response.data.data);
         setVideo(null);
       }
       setProgress(100);
-      toast.success('All files uploaded successfully! 🎉');
+      toast.success(video ? 'Upload received. Your video is being processed.' : 'Photos uploaded successfully!');
       navigate(`/sessions/${id}`);
     } catch (err) {
       toast.error(photosSaved ? 'Photos saved. Video failed — retry to upload only the video.' : 'Upload failed. Your selected files are still available to retry.');
     } finally {
+      queryClient.invalidateQueries({ queryKey: ['video-status', id] });
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
       queryClient.invalidateQueries({ queryKey: ['public', 'sessions'] });
       setUploading(false);
@@ -144,10 +150,11 @@ const UploadPage = () => {
           <span>Upload Media files</span>
         </h2>
         <p className="text-stone-500 text-sm mt-1 dark:text-stone-400">
-          Add up to 20 photos (max 10MB/each) and a single MP4 behind-the-scenes video (max 100MB).
+          Add up to 20 photos (10MB each) and one video (100MB). MP4, MOV, WebM, MKV, AVI and M4V are supported; playback is prepared automatically.
         </p>
       </div>
 
+      <VideoProcessingStatus sessionId={id} />
       <fieldset disabled={uploading} aria-busy={uploading} className="glassmorphism min-w-0 rounded-3xl p-6 md:p-8 border border-couple-100/50 shadow-md flex flex-col gap-6">
         {/* Images uploader area */}
         <div className="flex flex-col gap-2">
@@ -205,7 +212,7 @@ const UploadPage = () => {
           {sessionLoading && <p className="muted text-sm">Loading current video…</p>}
           {sessionError && <div role="alert" className="muted text-sm">Could not load the current video. <button className="underline" onClick={() => retrySession()}>Try again</button></div>}
           {session?.videoUrl && !video && <div className="space-y-2"><p className="muted text-sm">Current video</p><VideoPlayer src={session.videoUrl} poster={session.videoThumbnailUrl} /></div>}
-          {videoPreview && <VideoPlayer src={videoPreview} />}
+          {videoPreview && <VideoPlayer src={videoPreview} localPreview />}
           {video && session?.videoUrl && <p className="text-sm text-amber-700 dark:text-amber-300">This selection will replace the current video when you upload. The current video stays available until the replacement succeeds.</p>}
           {video ? (
             <div className="p-4 bg-couple-50/50 dark:bg-couple-950/15 border border-couple-100 dark:border-couple-900 rounded-2xl flex items-center justify-between shadow-sm">
@@ -228,7 +235,7 @@ const UploadPage = () => {
             </div>
           ) : (
             <div
-              role="button" tabIndex={uploading ? -1 : 0} aria-label="Choose MP4 video"
+              role="button" tabIndex={uploading ? -1 : 0} aria-label="Choose video"
               onKeyDown={e => { if (!uploading && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); videoInputRef.current?.click(); } }}
               onClick={() => videoInputRef.current?.click()}
               className="border-2 border-dashed border-stone-200 dark:border-stone-800 hover:border-couple-300 dark:hover:border-couple-800 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-colors text-center bg-white/60 dark:bg-stone-900/60"
@@ -240,7 +247,7 @@ const UploadPage = () => {
                 type="file"
                 ref={videoInputRef}
                 onChange={handleVideoChange}
-                accept="video/mp4"
+                accept=".mp4,.mov,.webm,.mkv,.avi,.m4v"
                 className="hidden"
               />
             </div>
@@ -265,7 +272,7 @@ const UploadPage = () => {
 
         <button
           onClick={handleUpload}
-          disabled={uploading || sessionLoading || sessionError || (images.length === 0 && !video)}
+          disabled={uploading || sessionLoading || sessionError || (!!video && (processingVideo || videoStatus.isPending || videoStatus.isError)) || (images.length === 0 && !video)}
           className="w-full bg-couple-500 hover:bg-couple-600 text-white py-3.5 rounded-xl font-bold shadow-md hover:shadow-lg transition-all text-sm disabled:opacity-50 flex justify-center items-center gap-1.5"
         >
           <span>{uploading ? 'Uploading…' : 'Start uploading'}</span>
