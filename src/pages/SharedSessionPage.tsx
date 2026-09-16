@@ -5,6 +5,7 @@ import { Calendar, MapPin, Music, ChevronLeft, Film, Heart, MessageCircle, X } f
 import { AnimatePresence } from 'framer-motion';
 import PhotoDialog from '../components/PhotoDialog';
 import QueryError from '../components/QueryError';
+import VideoPlayer from '../components/VideoPlayer';
 import apiClient from '../api/apiClient';
 import { Session, Photo } from '../types';
 
@@ -116,14 +117,7 @@ const SharedSessionPage = () => {
             <Film className="w-5 h-5 text-couple-500" />
             <h3>Timelapse Trailer</h3>
           </div>
-          <div className="w-full aspect-video rounded-3xl overflow-hidden shadow bg-stone-900">
-            <video
-              src={session.videoUrl}
-              poster={session.videoThumbnailUrl}
-              controls
-              className="w-full h-full object-contain"
-            />
-          </div>
+          <VideoPlayer src={session.videoUrl} poster={session.videoThumbnailUrl} />
         </div>
       )}
 

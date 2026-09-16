@@ -6,6 +6,8 @@ import { AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import PhotoDialog from '../components/PhotoDialog';
 import QueryError from '../components/QueryError';
+import ImageEditor from '../components/ImageEditor';
+import VideoPlayer from '../components/VideoPlayer';
 import apiClient from '../api/apiClient';
 import { Session, Photo, LoveNote } from '../types';
 
@@ -15,6 +17,7 @@ const SessionDetailPage = () => {
   const queryClient = useQueryClient();
 
   const [activePhoto, setActivePhoto] = useState<Photo | null>(null);
+  const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
   const [newNote, setNewNote] = useState('');
 
   // Fetch session
@@ -177,6 +180,15 @@ const SessionDetailPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      {editingPhoto && <ImageEditor source={editingPhoto.originalUrl} onClose={() => setEditingPhoto(null)} onSave={async file => {
+        const form = new FormData(); form.append('file', file);
+        await apiClient.put(`/sessions/${id}/photos/${editingPhoto.id}/image`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['sessions'] }),
+          queryClient.invalidateQueries({ queryKey: ['public', 'sessions'] }),
+        ]);
+        toast.success('Photo updated');
+      }} />}
       {/* 1. Header controls */}
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <Link to="/" className="flex items-center gap-1 text-sm font-semibold text-stone-500 hover:text-stone-800 dark:hover:text-stone-100 transition-colors dark:text-stone-400">
@@ -281,18 +293,12 @@ const SessionDetailPage = () => {
       {/* 3. Timelapse section if attached */}
       {session.videoUrl && (
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-stone-700 dark:text-stone-300 font-bold">
+          <div className="flex flex-wrap items-center gap-2 text-stone-700 dark:text-stone-300 font-bold">
             <Film className="w-5 h-5 text-couple-500" />
             <h3>Behind-the-Scenes Timelapse</h3>
+            <Link to={`/sessions/${session.id}/upload`} className="secondary-button ml-auto">Replace video</Link>
           </div>
-          <div className="w-full aspect-video rounded-3xl overflow-hidden shadow-md bg-stone-900 border border-stone-200 dark:border-stone-800 relative group">
-            <video
-              src={session.videoUrl}
-              poster={session.videoThumbnailUrl}
-              controls
-              className="w-full h-full object-contain"
-            />
-          </div>
+          <VideoPlayer src={session.videoUrl} poster={session.videoThumbnailUrl} />
         </div>
       )}
 
@@ -372,6 +378,7 @@ const SessionDetailPage = () => {
                   </div>
 
                   <div className="flex flex-col gap-1 w-full text-white text-xs leading-snug">
+                    <button type="button" onClick={() => setEditingPhoto(photo)} className="pointer-events-auto self-start min-h-11 rounded-xl bg-white px-3 text-xs font-bold text-stone-800">Rotate / flip</button>
                     {photo.caption && <p className="line-clamp-2 italic font-medium">"{photo.caption}"</p>}
                     <div className="flex items-center gap-2 mt-1 border-t border-white/20 pt-1">
                       <span className="flex items-center gap-0.5">

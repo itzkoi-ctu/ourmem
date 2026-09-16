@@ -35,6 +35,7 @@
   .muted { @apply text-stone-600 dark:text-stone-400; }
   .surface { @apply bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800; }
   .secondary-button { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800; }
+  .secondary-button[aria-pressed="true"] { @apply border-couple-500 bg-couple-50 text-couple-700 dark:bg-couple-950 dark:text-couple-200; }
 }
 
 @media (prefers-reduced-motion: reduce) {

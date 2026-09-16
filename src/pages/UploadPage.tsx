@@ -1,8 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Upload, Camera, Film, Trash2, ArrowRight, ChevronLeft } from 'lucide-react';
+import { Upload, Camera, Film, Trash2, ArrowRight, ChevronLeft, Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ImageEditor from '../components/ImageEditor';
+import { Session } from '../types';
+import VideoPlayer from '../components/VideoPlayer';
 import apiClient from '../api/apiClient';
 
 function ImagePreview({ file }: { file: File }) {
@@ -12,7 +15,7 @@ function ImagePreview({ file }: { file: File }) {
     setUrl(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
   }, [file]);
-  return <img src={url || undefined} alt={file.name} className="w-full h-full object-cover" />;
+  return <img src={url || undefined} alt={file.name} className="w-full h-full object-contain" />;
 }
 
 const UploadPage = () => {
@@ -21,9 +24,22 @@ const UploadPage = () => {
   const queryClient = useQueryClient();
 
   const [images, setImages] = useState<File[]>([]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [videoPreview, setVideoPreview] = useState('');
+  const { data: session, isPending: sessionLoading, isError: sessionError, refetch: retrySession } = useQuery<Session>({
+    queryKey: ['sessions', id],
+    queryFn: async () => (await apiClient.get(`/sessions/${id}`)).data.data,
+  });
   const [video, setVideo] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (!video) { setVideoPreview(''); return; }
+    const url = URL.createObjectURL(video);
+    setVideoPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [video]);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -49,6 +65,7 @@ const UploadPage = () => {
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      e.target.value = '';
       if (file.size > 100 * 1024 * 1024) {
         return toast.error('Video must be less than 100MB');
       }
@@ -68,6 +85,8 @@ const UploadPage = () => {
       return toast.error('Please select at least 1 image or video');
     }
 
+    if (sessionLoading || sessionError) return toast.error('Load the session before uploading.');
+    if (video && session?.videoUrl && !window.confirm('Replace the current video? It will be removed only after the new video is saved successfully.')) return;
     setUploading(true);
     setProgress(0);
     const totalBytes = images.reduce((sum, file) => sum + file.size, 0) + (video?.size || 0);
@@ -113,6 +132,7 @@ const UploadPage = () => {
 
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-6">
+      {editingIndex !== null && images[editingIndex] && <ImageEditor source={images[editingIndex]} onClose={() => setEditingIndex(null)} onSave={file => { setImages(current => current.map((item, index) => index === editingIndex ? file : item)); }} />}
       <Link to={`/sessions/${id}`} className="flex items-center gap-1 text-sm font-semibold text-stone-500 hover:text-stone-800 dark:hover:text-stone-100 transition-colors dark:text-stone-400">
         <ChevronLeft className="w-4 h-4" />
         <span>Cancel</span>
@@ -156,17 +176,20 @@ const UploadPage = () => {
 
           {/* Images preview grid */}
           {images.length > 0 && (
-            <div className="grid grid-cols-4 gap-3 mt-3 bg-stone-50 dark:bg-stone-900/40 p-4 rounded-2xl border border-stone-200/50 dark:border-stone-800">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3 bg-stone-50 dark:bg-stone-900/40 p-4 rounded-2xl border border-stone-200/50 dark:border-stone-800">
               {images.map((img, i) => (
-                <div key={i} className="aspect-square relative rounded-xl overflow-hidden border border-stone-200 dark:border-stone-800 group shadow-sm bg-white">
-                  <ImagePreview file={img} />
+                <div key={i} className="rounded-xl overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm bg-white dark:bg-stone-900">
+                  <div className="aspect-square"><ImagePreview file={img} /></div>
+                  <div className="flex flex-wrap items-center justify-between gap-1 p-2">
+                  <button type="button" onClick={() => setEditingIndex(i)} className="secondary-button !px-2" aria-label={`Edit ${img.name}`}><Edit className="w-4 h-4" />Edit</button>
                   <button
                     aria-label={`Remove ${img.name}`}
                     onClick={() => removeImage(i)}
-                    className="absolute inset-0 bg-black/40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-opacity flex items-center justify-center text-white"
+                    className="p-3 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-950"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -179,12 +202,17 @@ const UploadPage = () => {
             <Film className="w-4 h-4" />
             <span>Timelapse Video (Optional)</span>
           </span>
+          {sessionLoading && <p className="muted text-sm">Loading current video…</p>}
+          {sessionError && <div role="alert" className="muted text-sm">Could not load the current video. <button className="underline" onClick={() => retrySession()}>Try again</button></div>}
+          {session?.videoUrl && !video && <div className="space-y-2"><p className="muted text-sm">Current video</p><VideoPlayer src={session.videoUrl} poster={session.videoThumbnailUrl} /></div>}
+          {videoPreview && <VideoPlayer src={videoPreview} />}
+          {video && session?.videoUrl && <p className="text-sm text-amber-700 dark:text-amber-300">This selection will replace the current video when you upload. The current video stays available until the replacement succeeds.</p>}
           {video ? (
             <div className="p-4 bg-couple-50/50 dark:bg-couple-950/15 border border-couple-100 dark:border-couple-900 rounded-2xl flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-2.5">
+              <div className="flex min-w-0 items-center gap-2.5">
                 <Film className="w-5 h-5 text-couple-500 animate-pulse" />
                 <div className="flex flex-col text-left">
-                  <span className="text-sm font-bold text-stone-700 dark:text-stone-300 truncate max-w-sm">
+                  <span className="text-sm font-bold text-stone-700 dark:text-stone-300 break-all">
                     {video.name}
                   </span>
                   <span className="text-xs text-stone-500 dark:text-stone-400">{(video.size / (1024 * 1024)).toFixed(1)} MB</span>
@@ -203,10 +231,10 @@ const UploadPage = () => {
               role="button" tabIndex={uploading ? -1 : 0} aria-label="Choose MP4 video"
               onKeyDown={e => { if (!uploading && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); videoInputRef.current?.click(); } }}
               onClick={() => videoInputRef.current?.click()}
-              className="border-2 border-dashed border-stone-200 dark:border-stone-800 hover:border-couple-300 dark:hover:border-couple-800 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-colors text-center bg-white/40"
+              className="border-2 border-dashed border-stone-200 dark:border-stone-800 hover:border-couple-300 dark:hover:border-couple-800 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-colors text-center bg-white/60 dark:bg-stone-900/60"
             >
               <Film className="w-8 h-8 text-stone-500 mb-2 dark:text-stone-400" />
-              <span className="text-sm font-bold text-stone-600 dark:text-stone-300">Choose MP4 video</span>
+              <span className="text-sm font-bold text-stone-600 dark:text-stone-300">{session?.videoUrl ? 'Choose replacement video' : 'Choose MP4 video'}</span>
               <span className="text-xs text-stone-500 mt-1 dark:text-stone-400">Maximum size 100MB</span>
               <input
                 type="file"
@@ -237,7 +265,7 @@ const UploadPage = () => {
 
         <button
           onClick={handleUpload}
-          disabled={uploading || (images.length === 0 && !video)}
+          disabled={uploading || sessionLoading || sessionError || (images.length === 0 && !video)}
           className="w-full bg-couple-500 hover:bg-couple-600 text-white py-3.5 rounded-xl font-bold shadow-md hover:shadow-lg transition-all text-sm disabled:opacity-50 flex justify-center items-center gap-1.5"
         >
           <span>{uploading ? 'Uploading…' : 'Start uploading'}</span>
