@@ -1,13 +1,14 @@
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../api/apiClient';
+import { parseVideoStatus, type VideoJob } from '../api/videoStatus';
 
-export interface VideoJob { id: string; status: 'PROCESSING' | 'READY' | 'FAILED'; message?: string; }
+export type { VideoJob } from '../api/videoStatus';
 export function useVideoStatus(sessionId?: string) {
   const client = useQueryClient();
   const query = useQuery<VideoJob | null>({
     queryKey: ['video-status', sessionId],
-    queryFn: async () => (await apiClient.get(`/sessions/${sessionId}/video/status`)).data.data,
+    queryFn: async () => parseVideoStatus((await apiClient.get(`/sessions/${sessionId}/video/status`)).data),
     enabled: !!sessionId,
     refetchInterval: query => query.state.data?.status === 'PROCESSING' ? 3000 : false,
   });
