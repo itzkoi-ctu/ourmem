@@ -1,10 +1,12 @@
 import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../store';
+import { restoreUser } from '../store/slices/authSlice';
 
 const ProtectedRoute = () => {
-  const { isAuthenticated, loading } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, loading, error } = useSelector((state: RootState) => state.auth);
+  const dispatch = useDispatch<AppDispatch>();
   const location = useLocation();
 
   if (loading) {
@@ -16,6 +18,13 @@ const ProtectedRoute = () => {
         </div>
       </div>
     );
+  }
+
+  if (error) {
+    return <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-stone-50 dark:bg-stone-950 dark:text-white">
+      <p role="alert">{error}</p>
+      <button className="rounded-xl bg-couple-600 px-5 py-3 text-white" onClick={() => dispatch(restoreUser())}>Try again</button>
+    </div>;
   }
 
   // If not authenticated, redirect to public gallery by default. Owner must go to /login.

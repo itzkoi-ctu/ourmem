@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Heart, Search, LogOut, LogIn, Camera } from 'lucide-react';
 import { RootState } from '../store';
 import { logoutUser } from '../store/slices/authSlice';
-import apiClient from '../api/apiClient';
+import { logout } from '../api/apiClient';
 import toast from 'react-hot-toast';
 import ThemeToggle from './ThemeToggle';
 
@@ -19,8 +19,7 @@ const Navbar: React.FC<NavbarProps> = ({ isGuest }) => {
 
   const handleLogout = async () => {
     try {
-      await apiClient.post('/auth/logout');
-      localStorage.removeItem('access_token');
+      await logout();
       dispatch(logoutUser());
       toast.success('Logged out successfully');
       navigate('/login');
@@ -35,7 +34,7 @@ const Navbar: React.FC<NavbarProps> = ({ isGuest }) => {
       <Link to={isGuest ? '/public' : '/'} className="flex items-center gap-2 text-lg sm:text-xl font-bold tracking-tight text-couple-600 dark:text-couple-400 hover:opacity-90 transition-opacity">
         <Heart className="w-6 h-6 fill-current animate-pulse text-couple-500" />
         <span className="hidden sm:inline bg-gradient-to-r from-couple-500 to-pink-500 bg-clip-text text-transparent">
-          Our Photobooth Memories
+          Our Photo
         </span>
         <span className="sm:hidden bg-gradient-to-r from-couple-500 to-pink-500 bg-clip-text text-transparent">
           Our Memories

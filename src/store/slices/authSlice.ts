@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
 import apiClient from '../../api/apiClient';
+import axios from 'axios';
 import { User } from '../../types';
 
 interface AuthState {
@@ -8,6 +8,7 @@ interface AuthState {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
+  restoreRequestId?: string;
 }
 
 const initialState: AuthState = {
@@ -22,7 +23,10 @@ export const restoreUser = createAsyncThunk('auth/restoreUser', async (_, { reje
     const response = await apiClient.get('/auth/me');
     return response.data.data;
   } catch (error) {
-    return rejectWithValue('Session expired');
+    if (axios.isCancel(error) || (axios.isAxiosError(error) && error.response?.status === 401)) {
+      return rejectWithValue('Session expired');
+    }
+    return rejectWithValue('Unable to check your session. Please try again.');
   }
 });
 
@@ -31,12 +35,14 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setCredentials: (state, action: PayloadAction<User>) => {
+      state.restoreRequestId = undefined;
       state.user = action.payload;
       state.isAuthenticated = true;
       state.loading = false;
       state.error = null;
     },
     logoutUser: (state) => {
+      state.restoreRequestId = undefined;
       state.user = null;
       state.isAuthenticated = false;
       state.loading = false;
@@ -45,18 +51,26 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(restoreUser.pending, (state) => {
+      .addCase(restoreUser.pending, (state, action) => {
+        state.restoreRequestId = action.meta.requestId;
         state.loading = true;
+        state.error = null;
       })
-      .addCase(restoreUser.fulfilled, (state, action: PayloadAction<User>) => {
+      .addCase(restoreUser.fulfilled, (state, action) => {
+        if (state.restoreRequestId !== action.meta.requestId) return;
+        state.restoreRequestId = undefined;
         state.user = action.payload;
         state.isAuthenticated = true;
         state.loading = false;
+        state.error = null;
       })
-      .addCase(restoreUser.rejected, (state) => {
+      .addCase(restoreUser.rejected, (state, action) => {
+        if (state.restoreRequestId !== action.meta.requestId) return;
+        state.restoreRequestId = undefined;
         state.user = null;
         state.isAuthenticated = false;
         state.loading = false;
+        state.error = action.payload === 'Session expired' ? null : String(action.payload || 'Unable to check your session.');
       });
   },
 });

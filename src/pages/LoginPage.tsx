@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { RootState } from '../store';
 import { setCredentials } from '../store/slices/authSlice';
-import apiClient from '../api/apiClient';
+import { login } from '../api/apiClient';
 import ThemeToggle from '../components/ThemeToggle';
 
 const LoginPage = () => {
@@ -37,13 +37,9 @@ const LoginPage = () => {
 
     setLoading(true);
     try {
-      const response = await apiClient.post('/auth/login', { email, password });
+      const response = await login({ email, password });
       const { data } = response.data;
       
-      if (data.accessToken) {
-        localStorage.setItem('access_token', data.accessToken);
-      }
-
       dispatch(setCredentials({
         id: data.userId,
         email: data.email,
